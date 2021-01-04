@@ -12,19 +12,23 @@ import math
 import struct
 
 def callback(msg):
-    print("Odometry: "+msg)
+    print(msg)
+    pass
 def callback2(msg):
-    print("Image_raw: "+msg)
-
+    print(np.size(msg))
+    pass
 if __name__ == '__main__':
     rospy.init_node('decollage', anonymous=True)
-    odometry = rospy.Subscriber("odom", Odometry, callback)
-    images_raw = rospy.Subscriber("image_raw", Image, callback2)
+    print("Node initialized")
+    odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
+    print("Subscribed to odom")
+    images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
+    print("Subscribed to Image")
     #pilot = rospy.Publisher("cmd_vel", Twist, queue_size=10)
-    #rospy.Publisher("[namespace]/takeoff", Empty, queue_size=10).publish()
-    #flip = rospy.Publisher("[namespace]/flip", UInt8, queue_size=10)
+    #rospy.Publisher("bebop/takeoff", Empty, queue_size=10).publish()
+    #flip = rospy.Publisher("bebop/flip", UInt8, queue_size=10)
     #flip.publish(0)
-    #rospy.Publisher("[namespace]/land", Empty, queue_size=10).publish()
+    #rospy.Publisher("bebop/land", Empty, queue_size=10).publish()
     while not rospy.is_shutdown():
         continue
 
