@@ -33,9 +33,9 @@ def callback2(msg):
         prev_gray = cv.cvtColor(prev_img,cv.COLOR_BGR2GRAY)
         # Detect features to track
         prev_pts = cv.goodFeaturesToTrack(prev_gray,
-                                     maxCorners=200,
+                                     maxCorners=1000,
                                      qualityLevel=0.01,
-                                     minDistance=10)
+                                     minDistance=50)
         # Get the current img
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         # Convert to gray scales
