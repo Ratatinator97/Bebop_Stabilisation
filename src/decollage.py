@@ -5,15 +5,49 @@ from std_msgs.msg import UInt8
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist 
+from cv_bridge import CvBridge
 import sys, tty, termios
 import numpy as np
 import cv2 as cv
 import math
 import struct
 
+bridge = CvBridge()
+prev_img = None
+
 def callback(msg):
     print("Odometry: "+msg)
 def callback2(msg):
+    global prev_img
+    global bridge
+    # to skip first frame
+    if prev_img == None:
+        curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        prev_img = curr_img
+    else:
+
+        # Convert to gray scales
+        prev_gray = cv.cvtColor(prev_img,cv.COLOR_BGR2GRAY)
+        # Detect features to track
+        prev_pts = cv2.goodFeaturesToTrack(prev_gray,
+                                     maxCorners=200,
+                                     qualityLevel=0.01,
+                                     minDistance=30,
+                                     blockSize=3)
+        # Get the current img
+        curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        # Convert to gray scales
+        curr_gray = cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
+        # Track feature points
+        curr_pts, status, err = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None) 
+        # Sanity check
+        assert prev_pts.shape == curr_pts.shape 
+        # Filter only valid points
+        idx = np.where(status==1)[0]
+        prev_pts = prev_pts[idx]
+        curr_pts = curr_pts[idx]
+
+
     print("Image_raw: "+msg)
 
 if __name__ == '__main__':
