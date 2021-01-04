@@ -16,8 +16,7 @@ bridge = CvBridge()
 prev_img = None
 
 def callback(msg):
-    print(msg)
-    pass
+    print("Odometry: "+msg)
 def callback2(msg):
     global prev_img
     global bridge
@@ -33,8 +32,7 @@ def callback2(msg):
         prev_pts = cv2.goodFeaturesToTrack(prev_gray,
                                      maxCorners=200,
                                      qualityLevel=0.01,
-                                     minDistance=30,
-                                     blockSize=3)
+                                     minDistance=30)
         # Get the current img
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         # Convert to gray scales
@@ -56,16 +54,13 @@ def callback2(msg):
 
 if __name__ == '__main__':
     rospy.init_node('decollage', anonymous=True)
-    print("Node initialized")
-    odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
-    print("Subscribed to odom")
-    images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
-    print("Subscribed to Image")
+    odometry = rospy.Subscriber("odom", Odometry, callback)
+    images_raw = rospy.Subscriber("image_raw", Image, callback2)
     #pilot = rospy.Publisher("cmd_vel", Twist, queue_size=10)
-    #rospy.Publisher("bebop/takeoff", Empty, queue_size=10).publish()
-    #flip = rospy.Publisher("bebop/flip", UInt8, queue_size=10)
+    #rospy.Publisher("[namespace]/takeoff", Empty, queue_size=10).publish()
+    #flip = rospy.Publisher("[namespace]/flip", UInt8, queue_size=10)
     #flip.publish(0)
-    #rospy.Publisher("bebop/land", Empty, queue_size=10).publish()
+    #rospy.Publisher("[namespace]/land", Empty, queue_size=10).publish()
     while not rospy.is_shutdown():
         continue
 
