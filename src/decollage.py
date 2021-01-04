@@ -23,6 +23,7 @@ def callback2(msg):
     print("Image cb called !")
     global prev_gray
     global bridge
+    global j
     # to skip first frame
     if prev_gray == []:
         print("First img")
@@ -34,7 +35,7 @@ def callback2(msg):
         prev_pts = cv.goodFeaturesToTrack(prev_gray,
                                      maxCorners=1000,
                                      qualityLevel=0.01,
-                                     minDistance=50)
+                                     minDistance=30)
         # Get the current img
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         # Convert to gray scales
