@@ -13,7 +13,7 @@ import math
 import struct
 
 bridge = CvBridge()
-prev_img = []
+prev_gray = []
 j = 0
 
 def callback(msg):
@@ -21,17 +21,15 @@ def callback(msg):
     pass
 def callback2(msg):
     print("Image cb called !")
-    global prev_img
+    global prev_gray
     global bridge
     # to skip first frame
-    if prev_img == []:
-        print("Fist img")
+    if prev_gray == []:
+        print("First img")
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        prev_img = curr_img
+        curr_gray =  cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
+        prev_gray = curr_gray
     else:
-
-        # Convert to gray scales
-        prev_gray = cv.cvtColor(prev_img,cv.COLOR_BGR2GRAY)
         # Detect features to track
         prev_pts = cv.goodFeaturesToTrack(prev_gray,
                                      maxCorners=1000,
@@ -58,6 +56,16 @@ def callback2(msg):
         j += 1
         cv.imwrite(name, curr_img)
         print("Image saved !")
+        
+        m = cv2.estimateAffine2D(prev_pts, curr_pts)
+        dx = m[0,2]
+        dy = m[1,2]
+        # Rotation angle
+        da = np.arctan2(m[1,0], m[0,0])
+        # Store transformation
+        transforms[i] = [dx,dy,da]
+
+        prev_gray = curr_gray
 
 
 if __name__ == '__main__':
