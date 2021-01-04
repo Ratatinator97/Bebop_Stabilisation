@@ -57,16 +57,17 @@ def callback2(msg):
         j += 1
         cv.imwrite(name, curr_img)
         print("Image saved !")
-        
-        m = cv2.estimateAffine2D(prev_pts, curr_pts)
-        dx = m[0,2]
-        dy = m[1,2]
+
+        #m = cv2.estimateAffine2D(prev_pts, curr_pts)
+        #dx = m[0,2]
+        #dy = m[1,2]
         # Rotation angle
-        da = np.arctan2(m[1,0], m[0,0])
+        #da = np.arctan2(m[1,0], m[0,0])
         # Store transformation
-        transforms[i] = [dx,dy,da]
+        #transforms[i] = [dx,dy,da]
 
         prev_gray = curr_gray
+
 
 
 if __name__ == '__main__':
