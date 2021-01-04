@@ -13,15 +13,18 @@ import math
 import struct
 
 bridge = CvBridge()
-prev_img = None
+prev_img = []
 
 def callback(msg):
-    print("Odometry: "+msg)
+    #print(msg)
+    pass
 def callback2(msg):
+    print("Image cb called !")
     global prev_img
     global bridge
     # to skip first frame
-    if prev_img == None:
+    if prev_img == []:
+        print("Fist img")
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         prev_img = curr_img
     else:
@@ -49,13 +52,15 @@ def callback2(msg):
         for i in curr_pts:
             x,y = i.ravel()
             cv.circle(curr_img,(x,y),3,255,-1)
-        cv.imwrite('../temp/'+i+'.jpg', curr_img)
+        name = '../temp/'+str(i)+'.jpg'
+        cv.imwrite(name, curr_img)
+        print("Image saved !")
 
 
 if __name__ == '__main__':
     rospy.init_node('decollage', anonymous=True)
-    odometry = rospy.Subscriber("odom", Odometry, callback)
-    images_raw = rospy.Subscriber("image_raw", Image, callback2)
+    odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
+    images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
     #pilot = rospy.Publisher("cmd_vel", Twist, queue_size=10)
     #rospy.Publisher("[namespace]/takeoff", Empty, queue_size=10).publish()
     #flip = rospy.Publisher("[namespace]/flip", UInt8, queue_size=10)
