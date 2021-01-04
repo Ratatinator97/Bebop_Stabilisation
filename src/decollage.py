@@ -14,6 +14,7 @@ import struct
 
 bridge = CvBridge()
 prev_img = []
+j = 0
 
 def callback(msg):
     #print(msg)
@@ -52,7 +53,8 @@ def callback2(msg):
         for i in curr_pts:
             x,y = i.ravel()
             cv.circle(curr_img,(x,y),3,255,-1)
-        name = '../temp/'+str(i).zfill(10)+'.jpg'
+        name = '../temp/'+str(j).zfill(10)+'.jpg'
+        j += 1
         cv.imwrite(name, curr_img)
         print("Image saved !")
 
