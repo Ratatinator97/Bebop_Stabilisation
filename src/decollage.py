@@ -29,16 +29,16 @@ def callback2(msg):
         # Convert to gray scales
         prev_gray = cv.cvtColor(prev_img,cv.COLOR_BGR2GRAY)
         # Detect features to track
-        prev_pts = cv2.goodFeaturesToTrack(prev_gray,
+        prev_pts = cv.goodFeaturesToTrack(prev_gray,
                                      maxCorners=200,
                                      qualityLevel=0.01,
-                                     minDistance=30)
+                                     minDistance=10)
         # Get the current img
         curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         # Convert to gray scales
         curr_gray = cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
         # Track feature points
-        curr_pts, status, err = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None) 
+        curr_pts, status, err = cv.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None) 
         # Sanity check
         assert prev_pts.shape == curr_pts.shape 
         # Filter only valid points
@@ -46,11 +46,6 @@ def callback2(msg):
         prev_pts = prev_pts[idx]
         curr_pts = curr_pts[idx]
 
-        for i in curr_pts:
-            x,y = i.ravel()
-            cv.circle(curr_img,(x,y),3,255,-1)
-
-        cv.imwrite("../temp/"+str(i)+".jpg", img)
 
 if __name__ == '__main__':
     rospy.init_node('decollage', anonymous=True)
