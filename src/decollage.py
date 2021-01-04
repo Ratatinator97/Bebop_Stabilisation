@@ -46,6 +46,11 @@ def callback2(msg):
         prev_pts = prev_pts[idx]
         curr_pts = curr_pts[idx]
 
+        for i in curr_pts:
+            x,y = i.ravel()
+            cv.circle(curr_img,(x,y),3,255,-1)
+        cv.imwrite('../temp/'+i+'.jpg', curr_img)
+
 
 if __name__ == '__main__':
     rospy.init_node('decollage', anonymous=True)
