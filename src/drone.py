@@ -88,7 +88,7 @@ class images_motion(object):
             # Detect features to track
             prev_pts = cv.goodFeaturesToTrack(self.prev_gray,
                                         maxCorners=1000,
-                                        qualityLevel=0.01,
+                                        qualityLevel=0.1,
                                         minDistance=30)
             # Get the current img
             curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
