@@ -116,6 +116,11 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.land_pub.publish(self.empty_msg)
 
+def signal_handler(sig, frame):
+    pim.save_and_quit()
+    print('Movements saved ! Exiting')
+    sys.exit(0)
+
 def main(args):
     pim = images_motion()
     rospy.init_node('process_images_node', anonymous=True)
@@ -126,7 +131,6 @@ def main(args):
     except KeyboardInterrupt:
         print("Shutting down")
         pim.save_and_quit()
-        pim.abbort_mission()
         
     cv2.destroyAllWindows()
 
