@@ -63,21 +63,21 @@ def callback2(msg):
         curr_pts = curr_pts[idx]
 
         # Save raw image
-        cv.imwrite('../raw/'+session_name+str(j).zfill(10)+'.jpg', curr_img)
+        cv.imwrite('../raw/'+session_name+'/'+str(j).zfill(10)+'.jpg', curr_img)
         for i in curr_pts:
             x,y = i.ravel()
             cv.circle(curr_img,(x,y),3,255,-1)
         j += 1
         # Save annotated image
-        cv.imwrite('../temp/'+session_name+str(j).zfill(10)+'.jpg', curr_img)
+        cv.imwrite('../temp/'+session_name+'/'+str(j).zfill(10)+'.jpg', curr_img)
         print("Image saved !")
 
 
         m = cv.estimateAffinePartial2D(prev_pts, curr_pts)
-        dx = m[0,2]
-        dy = m[1,2]
+        dx = m[0][2]
+        dy = m[1][2]
         # Rotation angle
-        da = np.arctan2(m[1,0], m[0,0])
+        da = np.arctan2(m[1][0], m[0][0])
         # Store transformation
         transforms.append([dx,dy,da])
 
