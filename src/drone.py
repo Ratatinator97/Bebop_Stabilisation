@@ -13,6 +13,8 @@ from std_msgs.msg import Empty
 # OpenCV2 for saving an image
 import cv2 as cv
 import sys
+from time import time
+
 import signal
 import math
  
@@ -37,6 +39,7 @@ def euler_from_quaternion(x, y, z, w):
         yaw_z = math.atan2(t3, t4)
      
         return roll_x, pitch_y, yaw_z # in radians
+        
 class images_motion(object):
 
     def __init__(self):
@@ -73,6 +76,7 @@ class images_motion(object):
         self.orientation.append([timestamp,x,y,z])
             
     def callback2(self, msg):
+        timestamp = time()
         print("Image cb called !")
         # to skip first frame
         if self.prev_gray == []:
@@ -117,14 +121,14 @@ class images_motion(object):
             # Rotation angle
             da = np.arctan2(m[1][0], m[0][0])
             # Store transformation
-            self.transforms.append([dx,dy,da])
-
+            self.transforms.append([timestamp, dx,dy,da])
 
             self.prev_gray = curr_gray
         
     def save_and_quit(self):
         # Image processing saving
-        fields = ['dx', 'dy', 'da']
+        fields = ['Timestamp', 'dx', 'dy', 'da']
+        
         with open('../data/'+self.session_name+'/transforms.csv', 'w') as f:
             write = csv.writer(f)
             write.writerow(fields)
