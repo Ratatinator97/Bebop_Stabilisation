@@ -13,7 +13,30 @@ from std_msgs.msg import Empty
 # OpenCV2 for saving an image
 import cv2 as cv
 import sys
-
+import signal
+import math
+ 
+def euler_from_quaternion(x, y, z, w):
+        """
+        Convert a quaternion into euler angles (roll, pitch, yaw)
+        roll is rotation around x in radians (counterclockwise)
+        pitch is rotation around y in radians (counterclockwise)
+        yaw is rotation around z in radians (counterclockwise)
+        """
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll_x = math.atan2(t0, t1)
+     
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch_y = math.asin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw_z = math.atan2(t3, t4)
+     
+        return roll_x, pitch_y, yaw_z # in radians
 class images_motion(object):
 
     def __init__(self):
@@ -28,6 +51,7 @@ class images_motion(object):
         self.prev_gray = []
         self.j = 0
         self.transforms = []
+        self.orientation = []
          
         self.session_name = raw_input("Enter the name of the session: ")
         if not self.session_name in os.listdir('../raw/'):
@@ -38,15 +62,15 @@ class images_motion(object):
             os.mkdir("../data/"+self.session_name)
         self.file_odom = open("../data/"+self.session_name+"/odometry.csv", "wb")
         self.writer = csv.writer(self.file_odom)
-        self.writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') ) 
+        self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
         print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
         print("Linear: "+str(msg.twist.twist.linear))
         print("Linear: "+str(msg.twist.twist.angular))
-        self.writer.writerow( (str(msg.header.stamp.secs)+","+str(msg.header.stamp.nsecs),
-            str(msg.twist.twist.linear), 
-            str(msg.twist.twist.angular) ) )
+        x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
+        timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
+        self.orientation.append([timestamp,x,y,z])
             
     def callback2(self, msg):
         print("Image cb called !")
@@ -106,6 +130,7 @@ class images_motion(object):
             write.writerow(fields)
             write.writerows(self.transforms)
         # close odometry .csv
+        self.writer.writerows(self.orientation)
         self.file_odom.close()
         print('Movements saved ! Exiting')
 
@@ -120,23 +145,23 @@ class images_motion(object):
         self.land_pub.publish(self.empty_msg)
 
 def signal_handler(sig, frame):
+    global pim
     pim.save_and_quit()
     print('Movements saved ! Exiting')
     sys.exit(0)
 
 def main(args):
-    pim = images_motion()
+    global pim
     rospy.init_node('process_images_node', anonymous=True)
     rospy.sleep(1)
+    signal.signal(signal.SIGINT, signal_handler)
     pim.takeoff()
     try:
         rospy.spin()
     except KeyboardInterrupt:
-        print("Shutting down")
-        pim.save_and_quit()
-        
+        print("Shut down")
     cv.destroyAllWindows()
-
+pim = images_motion()
 if __name__ == '__main__':
           main(sys.argv)
 
