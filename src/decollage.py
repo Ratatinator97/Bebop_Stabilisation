@@ -11,16 +11,21 @@ import numpy as np
 import cv2 as cv
 import math
 import struct
+import csv
 
 bridge = CvBridge()
 prev_gray = []
 j = 0
 
+file_odom = open("../data/odometry.csv", "wb")
+writer = csv.writer(file_odom)
+writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') )
 def callback(msg):
-    f = open("odometry.txt", "a")
-    f.write(msg)
-    f.close()
-    pass
+    global writer
+    print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
+    print("Linear: "+str(msg.twist.twist.linear))
+    print("Linear: "+str(msg.twist.twist.angular))
+    writer.writerow( (str(msg.header.stamp.secs)+","+str(msg.header.stamp.nsecs), str(msg.twist.twist.linear), str(msg.twist.twist.angular) ) )
 def callback2(msg):
     print("Image cb called !")
     global prev_gray
@@ -83,4 +88,4 @@ if __name__ == '__main__':
     #rospy.Publisher("[namespace]/land", Empty, queue_size=10).publish()
     while not rospy.is_shutdown():
         continue
-
+    f.close()
