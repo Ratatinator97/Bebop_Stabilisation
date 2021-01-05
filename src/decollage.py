@@ -101,6 +101,8 @@ if __name__ == '__main__':
         os.mkdir("../raw/"+session_name)
     if not session_name in os.listdir('../temp/'):
         os.mkdir("../temp/"+session_name)
+    if not session_name in os.listdir('../data/'):
+        os.mkdir("../data/"+session_name)
     
     rospy.init_node('decollage', anonymous=True)
     odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
