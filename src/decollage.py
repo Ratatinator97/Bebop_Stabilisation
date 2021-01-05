@@ -18,7 +18,7 @@ import signal
 bridge = CvBridge()
 prev_gray = []
 j = 0
-session_name = ""
+session_name = ""   
 transforms = []
 
 def callback(msg):
