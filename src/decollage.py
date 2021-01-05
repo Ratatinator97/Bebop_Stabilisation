@@ -6,7 +6,6 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist 
 from cv_bridge import CvBridge
-from pathlib import Path
 import sys, tty, termios
 import numpy as np
 import cv2 as cv
@@ -14,6 +13,7 @@ import math
 import struct
 import os
 import csv
+import signal
 
 bridge = CvBridge()
 prev_gray = []
@@ -87,7 +87,7 @@ def callback2(msg):
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     fields = ['dx', 'dy', 'da']
-    with open('../data/transforms', 'w') as f:
+    with open('../data/transforms.csv', 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
         write.writerows(transforms)
