@@ -70,7 +70,7 @@ def callback2(msg):
         print("Image saved !")
 
 
-        m = cv.estimateAffinePartial2D(prev_pts, curr_pts)
+        m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
         print(m)
         dx = m[0][2]
         dy = m[1][2]
