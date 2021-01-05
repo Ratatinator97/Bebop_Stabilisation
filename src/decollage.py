@@ -17,7 +17,9 @@ prev_gray = []
 j = 0
 
 def callback(msg):
-    #print(msg)
+    f = open("odometry.txt", "a")
+    f.write(msg)
+    f.close()
     pass
 def callback2(msg):
     print("Image cb called !")
