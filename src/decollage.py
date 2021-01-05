@@ -21,9 +21,6 @@ j = 0
 session_name = ""
 transforms = []
 
-file_odom = open("../data/odometry.csv", "wb")
-writer = csv.writer(file_odom)
-writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') )
 def callback(msg):
     global writer
     print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
@@ -74,6 +71,7 @@ def callback2(msg):
 
 
         m = cv.estimateAffinePartial2D(prev_pts, curr_pts)
+        print(m)
         dx = m[0][2]
         dy = m[1][2]
         # Rotation angle
@@ -103,7 +101,9 @@ if __name__ == '__main__':
         os.mkdir("../temp/"+session_name)
     if not session_name in os.listdir('../data/'):
         os.mkdir("../data/"+session_name)
-    
+    file_odom = open("../data/"+session_name+"/odometry.csv", "wb")
+    writer = csv.writer(file_odom)
+    writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') )   
     rospy.init_node('decollage', anonymous=True)
     odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
     images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
