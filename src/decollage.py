@@ -88,11 +88,12 @@ def callback2(msg):
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     fields = ['dx', 'dy', 'da']
-    with open('../data/transforms.csv', 'w') as f:
+    with open('../data/'+session_name+'/transforms.csv', 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
         write.writerows(transforms)
     file_odom.close()
+    print('Movements saved ! Exiting')
     sys.exit(0)
 
 if __name__ == '__main__':
