@@ -10,6 +10,7 @@ from std_msgs.msg import Empty
 # OpenCV2 for saving an image
 import cv2
 import sys
+from time import time
 
 class images_motion(object):
 
@@ -46,6 +47,7 @@ class images_motion(object):
             str(msg.twist.twist.angular) ) )
             
     def callback2(self, msg):
+        timestamp = time()
         print("Image cb called !")
         # to skip first frame
         if self.prev_gray == []:
@@ -90,14 +92,15 @@ class images_motion(object):
             # Rotation angle
             da = np.arctan2(m[1][0], m[0][0])
             # Store transformation
-            transforms.append([dx,dy,da])
+            transforms.append([timestamp, dx,dy,da])
 
 
             prev_gray = curr_gray
         
     def save_and_quit(self):
         # Image processing saving
-        fields = ['dx', 'dy', 'da']
+        fields = ['Timestamp', 'dx', 'dy', 'da']
+        
         with open('../data/'+self.session_name+'/transforms.csv', 'w') as f:
             write = csv.writer(f)
             write.writerow(fields)
