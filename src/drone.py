@@ -147,6 +147,7 @@ class images_motion(object):
 def signal_handler(sig, frame):
     global pim
     pim.save_and_quit()
+    pim.abbort_mission()
     print('Movements saved ! Exiting')
     sys.exit(0)
 
