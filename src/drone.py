@@ -3,12 +3,15 @@
 
 import rospy
 import numpy as np
+import os
+import csv
 from sensor_msgs.msg import Image
+from nav_msgs.msg import Odometry
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
 # OpenCV2 for saving an image
-import cv2
+import cv2 as cv
 import sys
 
 class images_motion(object):
@@ -25,17 +28,17 @@ class images_motion(object):
         self.prev_gray = []
         self.j = 0
         self.transforms = []
-        self.file_odom = open("../data/"+session_name+"/odometry.csv", "wb")
-        self.writer = csv.writer(file_odom)
-        writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') )  
-
+         
         self.session_name = raw_input("Enter the name of the session: ")
-        if not session_name in os.listdir('../raw/'):
-            os.mkdir("../raw/"+session_name)
-        if not session_name in os.listdir('../temp/'):
-            os.mkdir("../temp/"+session_name)
-        if not session_name in os.listdir('../data/'):
-            os.mkdir("../data/"+session_name)
+        if not self.session_name in os.listdir('../raw/'):
+            os.mkdir("../raw/"+self.session_name)
+        if not self.session_name in os.listdir('../temp/'):
+            os.mkdir("../temp/"+self.session_name)
+        if not self.session_name in os.listdir('../data/'):
+            os.mkdir("../data/"+self.session_name)
+        self.file_odom = open("../data/"+self.session_name+"/odometry.csv", "wb")
+        self.writer = csv.writer(self.file_odom)
+        self.writer.writerow( ('Timestamp', 'Twist Linear', 'Twist Angular') ) 
 
     def callback(self, msg):
         print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
@@ -50,21 +53,21 @@ class images_motion(object):
         # to skip first frame
         if self.prev_gray == []:
             print("First img")
-            curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+            curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             curr_gray =  cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
-            prev_gray = curr_gray
+            self.prev_gray = curr_gray
         else:
             # Detect features to track
-            prev_pts = cv.goodFeaturesToTrack(prev_gray,
+            prev_pts = cv.goodFeaturesToTrack(self.prev_gray,
                                         maxCorners=1000,
                                         qualityLevel=0.01,
                                         minDistance=30)
             # Get the current img
-            curr_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+            curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             # Convert to gray scales
             curr_gray = cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
             # Track feature points
-            curr_pts, status, err = cv.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None) 
+            curr_pts, status, err = cv.calcOpticalFlowPyrLK(self.prev_gray, curr_gray, prev_pts, None) 
             # Sanity check
             assert prev_pts.shape == curr_pts.shape 
             # Filter only valid points
@@ -90,10 +93,10 @@ class images_motion(object):
             # Rotation angle
             da = np.arctan2(m[1][0], m[0][0])
             # Store transformation
-            transforms.append([dx,dy,da])
+            self.transforms.append([dx,dy,da])
 
 
-            prev_gray = curr_gray
+            self.prev_gray = curr_gray
         
     def save_and_quit(self):
         # Image processing saving
@@ -120,7 +123,7 @@ def main(args):
     pim = images_motion()
     rospy.init_node('process_images_node', anonymous=True)
     rospy.sleep(1)
-    #pim.takeoff()
+    pim.takeoff()
     try:
         rospy.spin()
     except KeyboardInterrupt:
@@ -128,7 +131,7 @@ def main(args):
         pim.save_and_quit()
         pim.abbort_mission()
         
-    cv2.destroyAllWindows()
+    cv.destroyAllWindows()
 
 if __name__ == '__main__':
           main(sys.argv)
