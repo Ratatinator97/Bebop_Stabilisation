@@ -6,16 +6,20 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist 
 from cv_bridge import CvBridge
+from pathlib import Path
 import sys, tty, termios
 import numpy as np
 import cv2 as cv
 import math
 import struct
+import os
 import csv
 
 bridge = CvBridge()
 prev_gray = []
 j = 0
+session_name = ""
+transforms = []
 
 file_odom = open("../data/odometry.csv", "wb")
 writer = csv.writer(file_odom)
@@ -31,6 +35,8 @@ def callback2(msg):
     global prev_gray
     global bridge
     global j
+    global session_name
+    global transforms
     # to skip first frame
     if prev_gray == []:
         print("First img")
@@ -56,28 +62,46 @@ def callback2(msg):
         prev_pts = prev_pts[idx]
         curr_pts = curr_pts[idx]
 
-        cv.imwrite('../raw/'+str(j).zfill(10)+'.jpg', curr_img)
+        # Save raw image
+        cv.imwrite('../raw/'+session_name+str(j).zfill(10)+'.jpg', curr_img)
         for i in curr_pts:
             x,y = i.ravel()
             cv.circle(curr_img,(x,y),3,255,-1)
-        name = '../temp/'+str(j).zfill(10)+'.jpg'
         j += 1
-        cv.imwrite(name, curr_img)
+        # Save annotated image
+        cv.imwrite('../temp/'+session_name+str(j).zfill(10)+'.jpg', curr_img)
         print("Image saved !")
 
-        #m = cv2.estimateAffine2D(prev_pts, curr_pts)
-        #dx = m[0,2]
-        #dy = m[1,2]
+
+        m = cv.estimateAffinePartial2D(prev_pts, curr_pts)
+        dx = m[0,2]
+        dy = m[1,2]
         # Rotation angle
-        #da = np.arctan2(m[1,0], m[0,0])
+        da = np.arctan2(m[1,0], m[0,0])
         # Store transformation
-        #transforms[i] = [dx,dy,da]
+        transforms.append([dx,dy,da])
+
 
         prev_gray = curr_gray
 
-
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C!')
+    fields = ['dx', 'dy', 'da']
+    with open('../data/transforms', 'w') as f:
+        write = csv.writer(f)
+        write.writerow(fields)
+        write.writerows(transforms)
+    file_odom.close()
+    sys.exit(0)
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+    session_name = input("Enter the name of the session: ")
+    if not session_name in os.listdir('../raw/'):
+        os.mkdir("../raw/"+session_name)
+    if not session_name in os.listdir('../temp/'):
+        os.mkdir("../temp/"+session_name)
+    
     rospy.init_node('decollage', anonymous=True)
     odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
     images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
@@ -88,4 +112,4 @@ if __name__ == '__main__':
     #rospy.Publisher("[namespace]/land", Empty, queue_size=10).publish()
     while not rospy.is_shutdown():
         continue
-    f.close()
+    
