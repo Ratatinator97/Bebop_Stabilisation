@@ -96,7 +96,7 @@ def signal_handler(sig, frame):
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
-    session_name = input("Enter the name of the session: ")
+    session_name = raw_input("Enter the name of the session: ")
     if not session_name in os.listdir('../raw/'):
         os.mkdir("../raw/"+session_name)
     if not session_name in os.listdir('../temp/'):
@@ -106,10 +106,10 @@ if __name__ == '__main__':
     odometry = rospy.Subscriber("bebop/odom", Odometry, callback)
     images_raw = rospy.Subscriber("bebop/image_raw", Image, callback2)
     #pilot = rospy.Publisher("cmd_vel", Twist, queue_size=10)
-    #rospy.Publisher("[namespace]/takeoff", Empty, queue_size=10).publish()
-    #flip = rospy.Publisher("[namespace]/flip", UInt8, queue_size=10)
+    #rospy.Publisher("bebop/takeoff", Empty, queue_size=10).publish()
+    #flip = rospy.Publisher("bebop/flip", UInt8, queue_size=10)
     #flip.publish(0)
-    #rospy.Publisher("[namespace]/land", Empty, queue_size=10).publish()
+    #rospy.Publisher("bebop/land", Empty, queue_size=10).publish()
     while not rospy.is_shutdown():
         continue
     
