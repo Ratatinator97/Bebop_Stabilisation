@@ -17,6 +17,8 @@ from time import time
 
 import signal
 import math
+
+counter = 0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -76,6 +78,7 @@ class images_motion(object):
         self.orientation.append([timestamp,x,y,z])
             
     def callback2(self, msg):
+        global counter
         timestamp = time()
         print("Image cb called !")
         # to skip first frame
@@ -115,7 +118,6 @@ class images_motion(object):
 
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
-            print(m)
             dx = m[0][2]
             dy = m[1][2]
             # Rotation angle
