@@ -19,6 +19,7 @@ import signal
 import math
 
 counter = 0
+x_error = 0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -79,6 +80,7 @@ class images_motion(object):
             
     def callback2(self, msg):
         global counter
+        global x_error
         timestamp = time()
         print("Image cb called !")
         # to skip first frame
@@ -119,11 +121,15 @@ class images_motion(object):
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
             dx = m[0][2]
-            dy = m[1][2]
-            # Rotation angle
-            da = np.arctan2(m[1][0], m[0][0])
-            # Store transformation
-            self.transforms.append([timestamp, dx,dy,da])
+
+            if counter < 30:
+                x_error += dx
+                counter += 1
+            else:
+                self.transforms.append([timestamp, x_error])
+                print(x_error)
+                x_error = 0
+                counter = 0
 
             self.prev_gray = curr_gray
         
