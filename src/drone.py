@@ -168,7 +168,7 @@ def main(args):
     rospy.init_node('process_images_node', anonymous=True)
     rospy.sleep(1)
     signal.signal(signal.SIGINT, signal_handler)
-    pim.takeoff()
+    #pim.takeoff()
     try:
         rospy.spin()
     except KeyboardInterrupt:
