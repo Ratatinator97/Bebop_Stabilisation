@@ -19,7 +19,7 @@ import signal
 import math
 
 counter = 0
-x_error = 0.0
+x_error = 0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -71,6 +71,9 @@ class images_motion(object):
         self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
+        print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
+        print("Linear: "+str(msg.twist.twist.linear))
+        print("Linear: "+str(msg.twist.twist.angular))
         x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
         timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
         self.orientation.append([timestamp,x,y,z])
@@ -119,14 +122,10 @@ class images_motion(object):
                 x_error += dx
                 counter += 1
             else:
-                x_error = x_error/300
-                if x_error > 1:
-                    x_error = 1
-                elif x_error < -1:
-                    x_error = -1
-                
                 self.transforms.append([timestamp, x_error])
-                correct_velocity_x(x_error)
+                twist_msg = Twist()
+                twist_msg.linear.y = -x_error
+                correct_velocity_x(twist_msg)
                 x_error = 0
                 counter = 0
 
@@ -155,6 +154,10 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.land_pub.publish(self.empty_msg)
 
+    def correct_velocity_x(self, twist_msg):
+        rospy.sleep(0.5)
+        self.twist_pub.publish(twist_msg)
+
 def signal_handler(sig, frame):
     global pim
     pim.save_and_quit()
@@ -167,7 +170,7 @@ def main(args):
     rospy.init_node('process_images_node', anonymous=True)
     rospy.sleep(1)
     signal.signal(signal.SIGINT, signal_handler)
-    #pim.takeoff()
+    pim.takeoff()
     try:
         rospy.spin()
     except KeyboardInterrupt:
