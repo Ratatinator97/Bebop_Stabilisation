@@ -19,7 +19,7 @@ import signal
 import math
 
 counter = 0
-x_error = 0
+x_error = 0.0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -71,9 +71,6 @@ class images_motion(object):
         self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
-        print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
-        print("Linear: "+str(msg.twist.twist.linear))
-        print("Linear: "+str(msg.twist.twist.angular))
         x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
         timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
         self.orientation.append([timestamp,x,y,z])
@@ -122,6 +119,12 @@ class images_motion(object):
                 x_error += dx
                 counter += 1
             else:
+                x_error = x_error/300
+                if x_error > 1:
+                    x_error = 1
+                elif x_error < -1:
+                    x_error = -1
+                
                 self.transforms.append([timestamp, x_error])
                 correct_velocity_x(x_error)
                 x_error = 0
