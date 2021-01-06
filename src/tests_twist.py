@@ -1,21 +1,19 @@
 
 #! /usr/bin/python
-
 import rospy
 import numpy as np
 import os
 import csv
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Twist, Vector3
+from geometry_msgs.msg import Twist, Vector3 
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
 # OpenCV2 for saving an image
 import cv2 as cv
 import sys
-from time import time
-
+from time import time, sleep
 import signal
 import math 
 
@@ -70,19 +68,14 @@ class images_motion(object):
         self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
-        print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
-        print("Linear: "+str(msg.twist.twist.linear))
-        print("Linear: "+str(msg.twist.twist.angular))
         x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
         timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
         self.orientation.append([timestamp,x,y,z])
             
     def callback2(self, msg):
         timestamp = time()
-        print("Image cb called !")
         # to skip first frame
         if self.prev_gray == []:
-            print("First img")
             curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             curr_gray =  cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
             self.prev_gray = curr_gray
@@ -113,11 +106,9 @@ class images_motion(object):
             self.j += 1
             # Save annotated image
             cv.imwrite('../temp/'+self.session_name+'/'+str(self.j).zfill(10)+'.jpg', curr_img)
-            print("Image saved !")
 
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
-            print(m)
             dx = m[0][2]
             dy = m[1][2]
             # Rotation angle
@@ -145,25 +136,18 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.takeoff_pub.publish(self.empty_msg)
 
-    def rotate(self):
-        Vector3 linear, angular
-        linear.x=0
-        linear.y=0
-        linear.z=0
-
-        angular.z=0.05
+    def rotate(self, twist_msg):
         
         print("Rotation...")
         rospy.sleep(0.5)
-        self.twist_pub.publish(linear, angular)
+        self.twist_pub.publish(twist_msg)
         
     def hover(self):
-        Vector3 linear, angular
-        self.twist_pub.publish(linear, angular)
-        print("Hovering")
+        self.twist_pub.publish(Twist())
+        print("Hovering now")
 
     def abbort_mission(self):
-        print("LANDING !! ABORT MISSION !! LANDING !!")
+        print("Landing started")
         rospy.sleep(0.5)
         self.land_pub.publish(self.empty_msg)
 
@@ -180,20 +164,19 @@ def main(args):
     rospy.sleep(1)
     signal.signal(signal.SIGINT, signal_handler)
     pim.takeoff()
-    pim.rotate()
-    time.sleep(1)
+    sleep(5) 
+    twist_msg=Twist()
+    twist_msg.angular.z=1
+    pim.rotate(twist_msg)
+    ros.sleep(10)
     pim.hover()
-    
-
-    
 
     try:
         rospy.spin()
     except KeyboardInterrupt:
         print("Shut down")
     cv.destroyAllWindows()
+
 pim = images_motion()
 if __name__ == '__main__':
           main(sys.argv)
-
-
