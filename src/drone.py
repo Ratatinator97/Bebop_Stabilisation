@@ -82,10 +82,8 @@ class images_motion(object):
         global counter
         global x_error
         timestamp = time()
-        print("Image cb called !")
         # to skip first frame
         if self.prev_gray == []:
-            print("First img")
             curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             curr_gray =  cv.cvtColor(curr_img,cv.COLOR_BGR2GRAY)
             self.prev_gray = curr_gray
@@ -116,8 +114,6 @@ class images_motion(object):
             self.j += 1
             # Save annotated image
             cv.imwrite('../temp/'+self.session_name+'/'+str(self.j).zfill(10)+'.jpg', curr_img)
-            print("Image saved !")
-
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
             dx = m[0][2]
@@ -135,7 +131,7 @@ class images_motion(object):
         
     def save_and_quit(self):
         # Image processing saving
-        fields = ['Timestamp', 'dx', 'dy', 'da']
+        fields = ['Timestamp', 'x_error']
         
         with open('../data/'+self.session_name+'/transforms.csv', 'w') as f:
             write = csv.writer(f)
