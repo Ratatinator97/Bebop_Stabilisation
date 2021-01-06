@@ -123,7 +123,7 @@ class images_motion(object):
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
-                print(x_error)
+                correct_velocity_x(x_error)
                 x_error = 0
                 counter = 0
 
