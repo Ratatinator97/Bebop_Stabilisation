@@ -20,6 +20,9 @@ import math
 
 counter = 0
 x_error = 0
+y_error = 0
+kp = 1/200
+ki = 0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -71,9 +74,6 @@ class images_motion(object):
         self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
-        print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
-        print("Linear: "+str(msg.twist.twist.linear))
-        print("Linear: "+str(msg.twist.twist.angular))
         x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
         timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
         self.orientation.append([timestamp,x,y,z])
@@ -81,6 +81,7 @@ class images_motion(object):
     def callback2(self, msg):
         global counter
         global x_error
+        global y_error
         timestamp = time()
         # to skip first frame
         if self.prev_gray == []:
@@ -117,16 +118,22 @@ class images_motion(object):
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
             dx = m[0][2]
+            dy = m[1][2]
 
             if counter < 30:
                 x_error += dx
+                y_error += dy
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
+                x_error = x_error*kp
+                y_error = y_error*kp
                 twist_msg = Twist()
                 twist_msg.linear.y = -x_error
-                correct_velocity_x(twist_msg)
+                twist_msg.linear.z = -y_error
+                correct_velocity(twist_msg)
                 x_error = 0
+                y_error = 0
                 counter = 0
 
             self.prev_gray = curr_gray
@@ -154,7 +161,7 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.land_pub.publish(self.empty_msg)
 
-    def correct_velocity_x(self, twist_msg):
+    def correct_velocity(self, twist_msg):
         rospy.sleep(0.5)
         self.twist_pub.publish(twist_msg)
 
