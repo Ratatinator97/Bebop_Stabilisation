@@ -7,6 +7,7 @@ import os
 import csv
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
@@ -52,6 +53,8 @@ class images_motion(object):
     def __init__(self):
         self.takeoff_pub = rospy.Publisher('/bebop/takeoff', Empty, queue_size=1)
         self.land_pub = rospy.Publisher('/bebop/land', Empty, queue_size=1)
+        self.twist_pub = rospy.Publisher('/bebop/cmd_vel', Twist, queue_size=30)
+
 
         self.odo_sub = rospy.Subscriber("/bebop/odom", Odometry, self.callback)
         self.raw_imb_sub = rospy.Subscriber("/bebop/image_raw", Image, self.callback2)
@@ -131,6 +134,14 @@ class images_motion(object):
                 x_error = x_error/N_FRAMES
                 x_error = x_error*kp
                 y_error = y_error*kp
+                if x_error > 1:
+                    x_error = 1
+                elif x_error < -1:
+                    x_error = -1
+                if y_error > 1:
+                    y_error = 1
+                elif y_error < -1:
+                    y_error = -1
                 twist_msg = Twist()
                 twist_msg.linear.y = -x_error
                 twist_msg.linear.z = -y_error
