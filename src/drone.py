@@ -21,8 +21,9 @@ import math
 counter = 0
 x_error = 0
 y_error = 0
-kp = 1/200
+kp = 1/100
 ki = 0
+N_FRAMES = 30
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -82,6 +83,7 @@ class images_motion(object):
         global counter
         global x_error
         global y_error
+        global N_FRAMES
         timestamp = time()
         # to skip first frame
         if self.prev_gray == []:
@@ -120,12 +122,13 @@ class images_motion(object):
             dx = m[0][2]
             dy = m[1][2]
 
-            if counter < 30:
+            if counter < N_FRAMES:
                 x_error += dx
                 y_error += dy
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
+                x_error = x_error/N_FRAMES
                 x_error = x_error*kp
                 y_error = y_error*kp
                 twist_msg = Twist()
