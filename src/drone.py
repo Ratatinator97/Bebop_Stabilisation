@@ -64,6 +64,7 @@ class images_motion(object):
         self.prev_gray = []
         self.j = 0
         self.transforms = []
+        self.correction = []
         self.orientation = []
          
         self.session_name = raw_input("Enter the name of the session: ")
@@ -130,7 +131,8 @@ class images_motion(object):
                 y_error += dy
                 counter += 1
             else:
-                self.transforms.append([timestamp, x_error])
+                self.transforms.append([timestamp, x_error, y_error])
+
                 x_error = x_error/N_FRAMES
                 x_error = x_error*kp
                 y_error = y_error*kp
@@ -146,6 +148,7 @@ class images_motion(object):
                 twist_msg.linear.y = -x_error
                 twist_msg.linear.z = -y_error
                 correct_velocity(twist_msg)
+                self.correction.append([timestamp, x_error, y_error])
                 x_error = 0
                 y_error = 0
                 counter = 0
@@ -154,12 +157,16 @@ class images_motion(object):
         
     def save_and_quit(self):
         # Image processing saving
-        fields = ['Timestamp', 'x_error']
+        fields = ['Timestamp', 'x_error', 'y_error']
         
         with open('../data/'+self.session_name+'/transforms.csv', 'w') as f:
             write = csv.writer(f)
             write.writerow(fields)
             write.writerows(self.transforms)
+        with open('../data/'+self.session_name+'/correction.csv', 'w') as f:
+            write = csv.writer(f)
+            write.writerow(fields)
+            write.writerows(self.correction)
         # close odometry .csv
         self.writer.writerows(self.orientation)
         self.file_odom.close()
