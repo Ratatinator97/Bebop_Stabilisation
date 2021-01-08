@@ -183,8 +183,8 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.takeoff_pub.publish(self.empty_msg)
         rospy.sleep(3)
-        kpx=0.08
-        kpy=0
+        kpx=0.05
+        kpy=0.005
 
 
     def abbort_mission(self):
