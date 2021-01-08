@@ -7,6 +7,7 @@ import os
 import csv
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
@@ -48,6 +49,8 @@ class images_motion(object):
     def __init__(self):
         self.takeoff_pub = rospy.Publisher('/bebop/takeoff', Empty, queue_size=1)
         self.land_pub = rospy.Publisher('/bebop/land', Empty, queue_size=1)
+        self.twist_pub = rospy.Publisher('/bebop/cmd_vel', Twist, queue_size=30)
+
 
         self.odo_sub = rospy.Subscriber("/bebop/odom", Odometry, self.callback)
         self.raw_imb_sub = rospy.Subscriber("/bebop/image_raw", Image, self.callback2)
@@ -71,9 +74,6 @@ class images_motion(object):
         self.writer.writerow( ('Timestamp', 'x', 'y', 'z') ) 
 
     def callback(self, msg):
-        print(str(msg.header.stamp.secs)+" : "+str(msg.header.stamp.nsecs))
-        print("Linear: "+str(msg.twist.twist.linear))
-        print("Linear: "+str(msg.twist.twist.angular))
         x, y, z = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
         timestamp = msg.header.stamp.secs + (msg.header.stamp.nsecs*pow(10,-9))
         self.orientation.append([timestamp,x,y,z])
@@ -123,9 +123,15 @@ class images_motion(object):
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
+                x_error = x_error/200
+                if x_error > 1:
+                    x_error = 1
+                elif x_error < -1:
+                    x_error = -1
                 twist_msg = Twist()
                 twist_msg.linear.y = -x_error
-                correct_velocity_x(twist_msg)
+                print("correcting x : " + str(x_error))
+                self.correct_velocity_x(twist_msg)
                 x_error = 0
                 counter = 0
 
