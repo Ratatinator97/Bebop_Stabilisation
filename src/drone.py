@@ -22,9 +22,9 @@ import math
 counter = 0
 x_error = 0
 y_error = 0
-kp = 1/100
+kp = 0.01
 ki = 0
-N_FRAMES = 30
+N_FRAMES = 10
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -88,6 +88,7 @@ class images_motion(object):
         global x_error
         global y_error
         global N_FRAMES
+        global kp
         timestamp = time()
         # to skip first frame
         if self.prev_gray == []:
@@ -98,7 +99,7 @@ class images_motion(object):
             # Detect features to track
             prev_pts = cv.goodFeaturesToTrack(self.prev_gray,
                                         maxCorners=1000,
-                                        qualityLevel=0.1,
+                                        qualityLevel=0.05,
                                         minDistance=30)
             # Get the current img
             curr_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -132,7 +133,7 @@ class images_motion(object):
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error, y_error])
-
+                print(kp)
                 x_error = x_error/N_FRAMES
                 x_error = x_error*kp
                 y_error = y_error*kp
@@ -147,7 +148,9 @@ class images_motion(object):
                 twist_msg = Twist()
                 twist_msg.linear.y = -x_error
                 twist_msg.linear.z = -y_error
-                correct_velocity(twist_msg)
+                print("commande x "+format(x_error, '.5f'))
+                print("commande y "+format(y_error, '.5f'))
+                self.correct_velocity(twist_msg)
                 self.correction.append([timestamp, x_error, y_error])
                 x_error = 0
                 y_error = 0
