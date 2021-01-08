@@ -21,6 +21,9 @@ import math
 
 counter = 0
 x_error = 0
+y_error = 0
+kp = 1/200
+ki = 0
  
 def euler_from_quaternion(x, y, z, w):
         """
@@ -81,6 +84,7 @@ class images_motion(object):
     def callback2(self, msg):
         global counter
         global x_error
+        global y_error
         timestamp = time()
         # to skip first frame
         if self.prev_gray == []:
@@ -117,12 +121,15 @@ class images_motion(object):
 
             m, _ = cv.estimateAffinePartial2D(prev_pts, curr_pts)
             dx = m[0][2]
+            dy = m[1][2]
 
             if counter < 30:
                 x_error += dx
+                y_error += dy
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
+<<<<<<< HEAD
                 x_error = x_error/200
                 if x_error > 1:
                     x_error = 1
@@ -132,7 +139,16 @@ class images_motion(object):
                 twist_msg.linear.y = -x_error
                 print("correcting x : " + str(x_error))
                 self.correct_velocity_x(twist_msg)
+=======
+                x_error = x_error*kp
+                y_error = y_error*kp
+                twist_msg = Twist()
+                twist_msg.linear.y = -x_error
+                twist_msg.linear.z = -y_error
+                correct_velocity(twist_msg)
+>>>>>>> d5edb3759f4ded4f4af1eb71dbf0d5aebdb2b5c2
                 x_error = 0
+                y_error = 0
                 counter = 0
 
             self.prev_gray = curr_gray
@@ -160,7 +176,7 @@ class images_motion(object):
         rospy.sleep(0.5)
         self.land_pub.publish(self.empty_msg)
 
-    def correct_velocity_x(self, twist_msg):
+    def correct_velocity(self, twist_msg):
         rospy.sleep(0.5)
         self.twist_pub.publish(twist_msg)
 
