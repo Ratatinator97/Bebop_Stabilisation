@@ -129,24 +129,20 @@ class images_motion(object):
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error])
-<<<<<<< HEAD
-                x_error = x_error/200
+                x_error = x_error*kp
+                y_error = y_error*kp
                 if x_error > 1:
                     x_error = 1
                 elif x_error < -1:
                     x_error = -1
-                twist_msg = Twist()
-                twist_msg.linear.y = -x_error
-                print("correcting x : " + str(x_error))
-                self.correct_velocity_x(twist_msg)
-=======
-                x_error = x_error*kp
-                y_error = y_error*kp
+                if y_error > 1:
+                    y_error = 1
+                elif y_error < -1:
+                    y_error = -1
                 twist_msg = Twist()
                 twist_msg.linear.y = -x_error
                 twist_msg.linear.z = -y_error
                 correct_velocity(twist_msg)
->>>>>>> d5edb3759f4ded4f4af1eb71dbf0d5aebdb2b5c2
                 x_error = 0
                 y_error = 0
                 counter = 0
