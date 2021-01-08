@@ -22,7 +22,8 @@ import math
 counter = 0
 x_error = 0
 y_error = 0
-kp = 0.01
+kpx = 0
+kpy = 0
 ki = 0
 N_FRAMES = 10
  
@@ -88,7 +89,8 @@ class images_motion(object):
         global x_error
         global y_error
         global N_FRAMES
-        global kp
+        global kpx
+        global kpy
         timestamp = time()
         # to skip first frame
         if self.prev_gray == []:
@@ -133,10 +135,9 @@ class images_motion(object):
                 counter += 1
             else:
                 self.transforms.append([timestamp, x_error, y_error])
-                print(kp)
                 x_error = x_error/N_FRAMES
-                x_error = x_error*kp
-                y_error = y_error*kp
+                x_error = x_error*kpx
+                y_error = y_error*kpy
                 if x_error > 1:
                     x_error = 1
                 elif x_error < -1:
@@ -176,9 +177,15 @@ class images_motion(object):
         print('Movements saved ! Exiting')
 
     def takeoff(self):
+        global kpy
+        global kpx
         print("Taking off...")
         rospy.sleep(0.5)
         self.takeoff_pub.publish(self.empty_msg)
+        rospy.sleep(3)
+        kpx=0.08
+        kpy=0
+
 
     def abbort_mission(self):
         print("LANDING !! ABORT MISSION !! LANDING !!")
